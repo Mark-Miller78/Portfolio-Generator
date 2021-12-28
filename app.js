@@ -1,17 +1,7 @@
 const inquirer = require("inquirer");
-// const fs=require('fs');
-// const generatePage = require('./src/page-template.js');
+const generatePage = require('./src/page-template.js');
+const {writeFile, copyFile} = require('./utils/generate-site.js');
 
-// const pageHTML = generatePage(name, github);
-
-// const [name, github]=profileDataArgs;
-
-
-// fs.writeFile('./index.html', pageHtML, err =>{
-//     if (err) throw (err);
-
-//     console.log('Portfolio complete! Check out index.html to see the output!');
-// });
 
 const promptUser=()=>{
     return inquirer.prompt([
@@ -42,23 +32,36 @@ const promptUser=()=>{
             }
         },
         {
+            type: 'confirm',
+            name: 'confirmAbout',
+            message: 'Would you like to enter some information about yourself for an "About" section?',
+            default: true
+        },
+        {
             type:'input',
             name:'about',
-            message:'Provide some information about yourself:'
+            message:'Provide some information about yourself:',
+            when: ({confirmAbout})=>{
+                if(confirmAbout){
+                    return true;
+                } else{
+                    return false;
+                }
+            }
         }
     ]);
 };
 
 const promptProject =portfolioData=>{
-    if(!portfolioData.projects){
-        portfolioData.projects = [];
-    }
-
     console.log(`
     =================
     Add a New Project
     =================
     `);
+    
+    if(!portfolioData.projects){
+        portfolioData.projects = [];
+    }
 
     return inquirer.prompt([
         {
@@ -135,5 +138,21 @@ const promptProject =portfolioData=>{
 promptUser()
     .then(promptProject)
     .then(portfolioData=>{
-        console.log(portfolioData)
+        return generatePage(portfolioData);
+    })
+    .then(pageHTML => {
+        return writeFile(pageHTML);
+    })
+    .then(writeFileResponse => {
+        console.log(writeFileResponse);
+        return copyFile();
+    })
+    .then(copyFileResponse => {
+        console.log(copyFileResponse);
+    })
+    .catch(err => {
+        console.log(err);
     });
+
+
+
